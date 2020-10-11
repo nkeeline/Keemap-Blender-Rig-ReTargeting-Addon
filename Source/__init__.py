@@ -1,4 +1,4 @@
-	# ##### BEGIN GPL LICENSE BLOCK #####
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ bl_info = {
     "blender": (2, 83, 0),
     "location": "3D View > Tools",
     "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "",
+    "wiki_url": "https://github.com/nkeeline/Keemap-Blender-Rig-ReTargeting-Addon",
     "tracker_url": "",
     "category": "Transfer Animation"
 }
