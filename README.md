@@ -11,3 +11,7 @@ UI:
 In the above image is the UI for the GUI in blender when the script is installed.
 
 Starting Frame: When the 'Transfer Animation from Source to Destination Character' button is pressed this is the starting frame in the timeline to start applying the rig modifications from the source to the destination.
+
+Number of Samples: This will be the number of frames in the timeline to transfer.  This is timeline units so if you put a start from of 10 and a number of samples of 20, then the transfer will start at frame 10 and continue until it gets to 30.
+
+Mouth KeyFrame Number: this is the number of frames to wait between each keyframe. so in the previous example with a start frame of 10 and a number of samples of 20 and a Keyframe number of 5 you will get a transfer and keyframe at 10,15,20,25 and 30.
