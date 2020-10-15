@@ -2,7 +2,7 @@
 Blender Rig Retargeting Addon allows mapping motions of one rig to another.  Works with ANY rig and allows user to map bones from one rig to another and save mapping files out to hard drive.  This script is tested and working on blender 2.83, if a newer version of blender breaks the script I'm sorry.
 
 Installation Procedure:
-Download the zip file in the root folder NOT the entire source code tree.  Go to Blender-->edit(pull down from menus at top)--> Preferences, then click on the add ons button on the left of the ui.  Click on the Install button.  Select the zip file you have downloaded.  When the script shows up on the list check the box to enable it.
+Download the zip file in the root folder NOT the entire source code tree.  Go to Blender-->edit(pull down from menus at top)--> Preferences, then click on the add ons button on the left of the ui.  Click on the Install button.  Select the zip file you have downloaded.  When the script shows up on the list check the box to enable it.  Make certain you DO NOT download this entire source code tree as a zip and try and install that, if you do, make sure to unzip it until you get to the file 'KeeMap Rig Transfer Addon.zip' and DO NOT UNZIP THIS FILE.  You must select this ZIP file still zipped to install into blender.
 
 UI:
 
