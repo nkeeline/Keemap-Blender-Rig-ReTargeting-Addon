@@ -12,6 +12,8 @@ In the above image is the UI for the GUI in blender when the script is installed
 
 # Transfer Settings
 
+![Image of the Blender UI](https://github.com/nkeeline/Keemap-Blender-Rig-ReTargeting-Addon/blob/main/Images/Transfer Settings.jpg)
+
 Starting Frame: When the 'Transfer Animation from Source to Destination Character' button is pressed this is the starting frame in the timeline to start applying the rig modifications from the source to the destination.
 
 Number of Samples: This will be the number of frames in the timeline to transfer.  This is timeline units so if you put a start from of 10 and a number of samples of 20, then the transfer will start at frame 10 and continue until it gets to 30.
@@ -33,3 +35,5 @@ Transfer Animation from Source to Destination Character:  Press this button to t
 
 # Bone Mapping:
 
+
+![Image of the Blender UI](https://github.com/nkeeline/Keemap-Blender-Rig-ReTargeting-Addon/blob/main/Images/Bone Mapping.jpg)
