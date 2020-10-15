@@ -168,7 +168,7 @@ def GetBoneEditRotationWorldSpace(arm, bonename):
 
 class PerformAnimationTransfer(bpy.types.Operator):
     bl_idname = "wm.perform_animation_transfer"
-    bl_label = "Read in OpenPose JSON Files and Apply to Character"
+    bl_label = "Transfer Animation from Source to Destination"
 
     def execute(self, context):
         scene = bpy.context.scene
