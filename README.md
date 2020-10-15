@@ -10,6 +10,8 @@ UI:
 
 In the above image is the UI for the GUI in blender when the script is installed.
 
+# Transfer Settings
+
 Starting Frame: When the 'Transfer Animation from Source to Destination Character' button is pressed this is the starting frame in the timeline to start applying the rig modifications from the source to the destination.
 
 Number of Samples: This will be the number of frames in the timeline to transfer.  This is timeline units so if you put a start from of 10 and a number of samples of 20, then the transfer will start at frame 10 and continue until it gets to 30.
@@ -27,4 +29,7 @@ Read in Bone Mapping File: press this button to read in all settings from the fi
 Save Bone Mapping File:  Press this button to save out all bones and their mapping as well as all other settings you've made in the gui to the selected Bone Mapping File.
 
 Transfer Animation from Source to Destination Character:  Press this button to transfer an animation from the start frame until the number of samples has been reached.  For example with a start frame of 10 and a number of samples of 20 and a Keyframe number of 5 you will get a transfer and keyframe at 10,15,20,25 and 30.  This transfer can take some time.  A percent complete is printed to the console so you can watch its progress.  Select toggle system console in blender to see this, otherwise just wait a while.
+
+
+# Bone Mapping:
 
