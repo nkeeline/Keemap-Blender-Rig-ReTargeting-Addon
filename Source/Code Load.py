@@ -1,7 +1,7 @@
 import os
 import sys
  
-filesDir = "C:\Users\Nick\Documents\GitHub\Keemap-Blender-Rig-ReTargeting-Addon\Source\SourceFiles"
+filesDir = "C:/Users/Nick/Documents/GitHub/Keemap-Blender-Rig-ReTargeting-Addon/Source/SourceFiles"
  
 initFile = "__init__.py"
  

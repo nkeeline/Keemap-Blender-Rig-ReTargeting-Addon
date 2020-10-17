@@ -131,8 +131,12 @@ class KEEMAP_LIST_OT_ReadInFile(bpy.types.Operator):
                 bone.set_bone_rotation = p['set_bone_rotation']
             if "bone_rotation_application_axis" in KeeMap:
                 bone.bone_rotation_application_axis = p['bone_rotation_application_axis']
-            if "position_correction_factor" in KeeMap:
-                bone.position_correction_factor = p['position_correction_factor']
+            if "position_correction_factorX" in KeeMap:
+                bone.position_correction_factor.x = p['position_correction_factorX']
+            if "position_correction_factorY" in KeeMap:
+                bone.position_correction_factor.y = p['position_correction_factorY']
+            if "position_correction_factorZ" in KeeMap:
+                bone.position_correction_factor.z = p['position_correction_factorZ']
             if "position_gain" in KeeMap:
                 bone.position_gain = p['position_gain']
             i = i + 1
@@ -178,7 +182,9 @@ class KEEMAP_LIST_OT_SaveToFile(bpy.types.Operator):
                 'set_bone_position': bone.set_bone_position,
                 'set_bone_rotation': bone.set_bone_rotation,
                 'bone_rotation_application_axis': bone.bone_rotation_application_axis,
-                'position_correction_factor': bone.position_correction_factor,
+                'position_correction_factorX': bone.position_correction_factor.x,
+                'position_correction_factorY': bone.position_correction_factor.y,
+                'position_correction_factorZ': bone.position_correction_factor.z,
                 'position_gain': bone.position_gain,
             })
         jsonbones.update(rootParams)
