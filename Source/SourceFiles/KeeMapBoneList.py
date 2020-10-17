@@ -86,58 +86,58 @@ class KEEMAP_LIST_OT_ReadInFile(bpy.types.Operator):
 
         data = json.load(file)
         
-        if "facial_capture" in KeeMap:
+        if "facial_capture" in data:
             KeeMap.facial_capture = data['start_frame_to_apply']
-        if "number_of_frames_to_apply" in KeeMap:
+        if "number_of_frames_to_apply" in data:
             KeeMap.number_of_frames_to_apply = data['number_of_frames_to_apply']
-        if "keyframe_every_n_frames" in KeeMap:
+        if "keyframe_every_n_frames" in data:
             KeeMap.keyframe_every_n_frames = data['keyframe_every_n_frames']
-        if "" in KeeMap:
+        if "" in data:
             KeeMap.source_rig_name = data['source_rig_name']
-        if "" in KeeMap:
+        if "" in data:
             KeeMap.destination_rig_name = data['destination_rig_name']
-        if "" in KeeMap:
+        if "" in data:
             KeeMap.bone_mapping_file = data['bone_mapping_file']
         i = 0
         for p in data['bones']:
             bone_list.add()
             bone = bone_list[i]
             
-            if "name" in KeeMap:
+            if "name" in p:
                 bone.name = p['name']
-            if "label" in KeeMap:
+            if "label" in p:
                 bone.label = p['label']
-            if "description" in KeeMap:
+            if "description" in p:
                 bone.description = p['description']
-            if "SourceBoneName" in KeeMap:
+            if "SourceBoneName" in p:
                 bone.SourceBoneName = p['SourceBoneName']
-            if "DestinationBoneName" in KeeMap:
+            if "DestinationBoneName" in p:
                 bone.DestinationBoneName = p['DestinationBoneName']
-            if "keyframe_this_bone" in KeeMap:
+            if "keyframe_this_bone" in p:
                 bone.keyframe_this_bone = p['keyframe_this_bone']
-            if "CorrectionFactorX" in KeeMap:
+            if "CorrectionFactorX" in p:
                 bone.CorrectionFactor.x = p['CorrectionFactorX']
-            if "CorrectionFactorY" in KeeMap:
+            if "CorrectionFactorY" in p:
                 bone.CorrectionFactor.y = p['CorrectionFactorY']
-            if "CorrectionFactorZ" in KeeMap:
+            if "CorrectionFactorZ" in p:
                 bone.CorrectionFactor.z = p['CorrectionFactorZ']
-            if "has_twist_bone" in KeeMap:
+            if "has_twist_bone" in p:
                 bone.has_twist_bone = p['has_twist_bone']
-            if "TwistBoneName" in KeeMap:
+            if "TwistBoneName" in p:
                 bone.TwistBoneName = p['TwistBoneName']
-            if "set_bone_position" in KeeMap:
+            if "set_bone_position" in p:
                 bone.set_bone_position = p['set_bone_position']
-            if "set_bone_rotation" in KeeMap:
+            if "set_bone_rotation" in p:
                 bone.set_bone_rotation = p['set_bone_rotation']
-            if "bone_rotation_application_axis" in KeeMap:
+            if "bone_rotation_application_axis" in p:
                 bone.bone_rotation_application_axis = p['bone_rotation_application_axis']
-            if "position_correction_factorX" in KeeMap:
+            if "position_correction_factorX" in p:
                 bone.position_correction_factor.x = p['position_correction_factorX']
-            if "position_correction_factorY" in KeeMap:
+            if "position_correction_factorY" in p:
                 bone.position_correction_factor.y = p['position_correction_factorY']
-            if "position_correction_factorZ" in KeeMap:
+            if "position_correction_factorZ" in p:
                 bone.position_correction_factor.z = p['position_correction_factorZ']
-            if "position_gain" in KeeMap:
+            if "position_gain" in p:
                 bone.position_gain = p['position_gain']
             i = i + 1
         file.close()
