@@ -111,6 +111,8 @@ class KEEMAP_LIST_OT_ReadInFile(bpy.types.Operator):
             bone.set_bone_position = p['set_bone_position']
             bone.set_bone_rotation = p['set_bone_rotation']
             bone.bone_rotation_application_axis = p['bone_rotation_application_axis']
+            bone.position_correction_factor = p['position_correction_factor']
+            bone.position_gain = p['position_gain']
             i = i + 1
         file.close()
         
@@ -154,6 +156,8 @@ class KEEMAP_LIST_OT_SaveToFile(bpy.types.Operator):
                 'set_bone_position': bone.set_bone_position,
                 'set_bone_rotation': bone.set_bone_rotation,
                 'bone_rotation_application_axis': bone.bone_rotation_application_axis,
+                'position_correction_factor': bone.position_correction_factor,
+                'position_gain': bone.position_gain,
             })
         jsonbones.update(rootParams)
         print(jsonbones)
