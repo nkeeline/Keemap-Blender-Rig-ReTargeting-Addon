@@ -86,17 +86,17 @@ class KEEMAP_LIST_OT_ReadInFile(bpy.types.Operator):
 
         data = json.load(file)
         
-        if "facial_capture" in data:
-            KeeMap.facial_capture = data['start_frame_to_apply']
+        if "start_frame_to_apply" in data:
+            KeeMap.start_frame_to_apply = data['start_frame_to_apply']
         if "number_of_frames_to_apply" in data:
             KeeMap.number_of_frames_to_apply = data['number_of_frames_to_apply']
         if "keyframe_every_n_frames" in data:
             KeeMap.keyframe_every_n_frames = data['keyframe_every_n_frames']
-        if "" in data:
+        if "source_rig_name" in data:
             KeeMap.source_rig_name = data['source_rig_name']
-        if "" in data:
+        if "destination_rig_name" in data:
             KeeMap.destination_rig_name = data['destination_rig_name']
-        if "" in data:
+        if "bone_mapping_file" in data:
             KeeMap.bone_mapping_file = data['bone_mapping_file']
         i = 0
         for p in data['bones']:
