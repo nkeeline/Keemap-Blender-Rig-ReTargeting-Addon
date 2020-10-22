@@ -4,6 +4,10 @@ Blender Rig Retargeting Addon allows mapping motions of one rig to another.  Wor
 Installation Procedure:
 Download the zip file in the root folder NOT the entire source code tree.  Go to Blender-->edit(pull down from menus at top)--> Preferences, then click on the add ons button on the left of the ui.  Click on the Install button.  Select the zip file you have downloaded.  When the script shows up on the list check the box to enable it.  Make certain you DO NOT download this entire source code tree as a zip and try and install that, if you do, make sure to unzip it until you get to the file 'KeeMap Rig Transfer Addon.zip' and DO NOT UNZIP THIS FILE.  You must select this ZIP file still zipped to install into blender.
 
+Tutorial:
+Here is a tutorial video with instructions on exactly how to use the script:
+https://youtu.be/EG-VCMkVpxg
+
 UI:
 
 ![Image of the Blender UI](https://github.com/nkeeline/Keemap-Blender-Rig-ReTargeting-Addon/blob/main/Images/KeeMapUI.jpg)
@@ -18,7 +22,7 @@ In the above image is the UI for the GUI in blender when the script is installed
 
 **Number of Samples**: This will be the number of frames in the timeline to transfer.  This is timeline units so if you put a start from of 10 and a number of samples of 20, then the transfer will start at frame 10 and continue until it gets to 30.
 
-**Mouth KeyFrame Number**: this is the number of frames to wait between each keyframe. so in the previous example with a start frame of 10 and a number of samples of 20 and a Keyframe number of 5 you will get a transfer and keyframe at 10,15,20,25 and 30.
+**KeyFrame Number**: this is the number of frames to wait between each keyframe. so in the previous example with a start frame of 10 and a number of samples of 20 and a Keyframe number of 5 you will get a transfer and keyframe at 10,15,20,25 and 30.
 
 **Source Rig Name**: Place the Name of the armature that is already keyframed with the animation you wish to transfer.
 
