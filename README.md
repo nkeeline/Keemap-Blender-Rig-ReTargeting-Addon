@@ -9,8 +9,6 @@ Here is a tutorial video with instructions on exactly how to use the script:
 
 https://youtu.be/EG-VCMkVpxg
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/EG-VCMkVpxg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
 UI:
 
 ![Image of the Blender UI](https://github.com/nkeeline/Keemap-Blender-Rig-ReTargeting-Addon/blob/main/Images/KeeMapUI.jpg)
