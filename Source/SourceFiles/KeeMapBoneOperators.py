@@ -315,7 +315,7 @@ class KEEMAP_BoneSelectedOperator(bpy.types.Operator):
 class KEEMAP_TestAllBones(bpy.types.Operator): 
     """Test All Bones to set there position""" 
     bl_idname = "wm.test_all_bones" 
-    bl_label = "Test Set All Bone's Posiitoin"
+    bl_label = "Test Set All Bone's Position"
     keyframe: bpy.props.BoolProperty(default = False) 
 
     def execute(self, context): 
@@ -330,7 +330,27 @@ class KEEMAP_TestAllBones(bpy.types.Operator):
             bpy.ops.wm.test_set_rotation_of_bone(index2pose = index,keyframe = self.keyframe)
             i = i+1
         return{'FINISHED'}
-      
+
+class KEEMAP_GetArmatureName(bpy.types.Operator):
+    """If an armature is selected, get the name and populate"""
+    bl_idname = "wm.get_arm_name"
+    bl_label = "Get Armature Name"
+    bl_options = {"REGISTER", "INTERNAL"}
+
+    source : bpy.props.BoolProperty()
+
+    @classmethod
+    def poll(self, context):
+        return context.object is not None and context.object.type == 'ARMATURE'
+
+    def execute(self, context):
+        KeeMap = bpy.context.scene.keemap_settings
+        if self.source:
+            KeeMap.source_rig_name = context.object.name
+        else:
+            KeeMap.destination_rig_name = context.object.name
+        return{'FINISHED'}
+
 class KEEMAP_GetSourceBoneName(bpy.types.Operator): 
     """If a bone is selected, get the name and popultate""" 
     bl_idname = "wm.get_source_bone_name" 
@@ -358,8 +378,8 @@ class KEEMAP_GetSourceBoneName(bpy.types.Operator):
                 bone_mapping_list[index].DestinationBoneName = bonename
             if bone_mapping_list[index].name == '' and rigname == KeeMap.source_rig_name:
                 bone_mapping_list[index].name = bonename
-        return{'FINISHED'} 
-    
+        return{'FINISHED'}
+
 class KEEMAP_AutoGetBoneCorrection(bpy.types.Operator): 
     """Auto Calculate the Bones Correction Number from calculated to current position.""" 
     bl_idname = "wm.get_bone_rotation_correction" 
@@ -441,10 +461,11 @@ class KEEMAP_AutoGetBoneCorrection(bpy.types.Operator):
                 print(destBoneStartPosition)
                 
         return{'FINISHED'}
-		
-		
+
+
 def register():
     bpy.utils.register_class(PerformAnimationTransfer)
+    bpy.utils.register_class(KEEMAP_GetArmatureName)
     bpy.utils.register_class(KEEMAP_GetSourceBoneName)
     bpy.utils.register_class(KEEMAP_TestSetRotationOfBone)
     bpy.utils.register_class(KEEMAP_AutoGetBoneCorrection)
@@ -454,6 +475,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(PerformAnimationTransfer)
+    bpy.utils.unregister_class(KEEMAP_GetArmatureName)
     bpy.utils.unregister_class(KEEMAP_GetSourceBoneName)
     bpy.utils.unregister_class(KEEMAP_TestSetRotationOfBone)
     bpy.utils.unregister_class(KEEMAP_AutoGetBoneCorrection)

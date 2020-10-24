@@ -34,8 +34,12 @@ class KeemapPanelOne(KeeMapToolsPanel, bpy.types.Panel):
         layout.prop(KeeMap, "start_frame_to_apply")
         layout.prop(KeeMap, "number_of_frames_to_apply")
         layout.prop(KeeMap, "keyframe_every_n_frames")
-        layout.prop(KeeMap, "source_rig_name")
-        layout.prop(KeeMap, "destination_rig_name")
+        row = layout.row(align=True)
+        row.prop(KeeMap, "source_rig_name")
+        row.operator("wm.get_arm_name", text='', icon='EYEDROPPER').source = True
+        row = layout.row(align=True)
+        row.prop(KeeMap, "destination_rig_name")
+        row.operator("wm.get_arm_name", text='', icon='EYEDROPPER').source = False
         layout.prop(KeeMap, "bone_mapping_file")
     
         row = layout.row()
