@@ -15,6 +15,30 @@ UI:
 
 In the above image is the UI for the GUI in blender when the script is installed.
 
+## WorkFlow/Quick Start
+
+After getting your source and destination rigs in the the same blend file enable addon, select both character's rigs in object mode and change to pose mode.
+
+Select a bone in the source rig, and select the eyedropper in the source rig name box.
+Select a bone in the destination rig and select eyedropper in the destination rig box.
+
+Select the browse in the bone mapping file dialog and put a name of a file you want to save your settings to (ie rig2rig.json or mysetting.json or some other).
+
+Click the Save bone mapping file (do this regularly to save your settings), at any time you can click read in to restore your last save or use this file on another blend etc.
+
+Select New to create a bone.
+
+Click the root bone in the source rig and select Get Name to populate it's name.
+select the root bone in destination rig and press Get Name.
+
+Select Test to see what happens.  rotate the destination rig's root bone to be the correct angle and press calc correction.
+
+Create a new bone repeating the above process working your way through the entire rig.  
+Use Test All to position the entire rig to match the source.
+Scrub the timeline back and forth and test all to make sure the transfer works.
+
+When you are done, put a start from and number of samples into the transfer settings and click 'transfer animation' to transfer and keyframe a large animation all in one go.
+
 ## Transfer Settings
 
 ![Image of the Blender UI](https://github.com/nkeeline/Keemap-Blender-Rig-ReTargeting-Addon/blob/main/Images/TransferSettings.jpg)
