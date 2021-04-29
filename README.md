@@ -8,6 +8,7 @@ Download the zip file in the root folder NOT the entire source code tree.  Go to
 when the addon doesn't show up it's usually one of two reasons:
 1. The zip file you are installing is a zip of a zip, open the zip file and make sure there isn't another zip inside the one you are trying to install.
 2. After installing you are not in pose mode so you don't see the add on tag.
+
 Tutorial:
 Here is a tutorial video with instructions on exactly how to use the script:
 
