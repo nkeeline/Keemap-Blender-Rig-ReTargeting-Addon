@@ -4,6 +4,10 @@ Blender Rig Retargeting Addon allows mapping motions of one rig to another.  Wor
 Installation Procedure:
 Download the zip file in the root folder NOT the entire source code tree.  Go to Blender-->edit(pull down from menus at top)--> Preferences, then click on the add ons button on the left of the ui.  Click on the Install button.  Select the zip file you have downloaded.  When the script shows up on the list check the box to enable it.  Make certain you DO NOT download this entire source code tree as a zip and try and install that, if you do, make sure to unzip it until you get to the file 'KeeMap Rig Transfer Addon.zip' and DO NOT UNZIP THIS FILE.  You must select this ZIP file still zipped to install into blender.
 
+# Reasons for failure to install!!!! 
+when the addon doesn't show up it's usually one of two reasons:
+1. The zip file you are installing is a zip of a zip, open the zip file and make sure there isn't another zip inside the one you are trying to install.
+2. After installing you are not in pose mode so you don't see the add on tag.
 Tutorial:
 Here is a tutorial video with instructions on exactly how to use the script:
 
