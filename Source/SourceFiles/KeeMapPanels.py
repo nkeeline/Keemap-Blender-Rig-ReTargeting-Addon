@@ -64,10 +64,10 @@ class KeemapPanelTwo(KeeMapToolsPanel, bpy.types.Panel):
         row.operator('keemap_bone_mapping_list.move_item', text='DOWN').direction = 'DOWN'
         row = layout.row() 
         row.label(text="List MUST be ordered Parent->Child")
-        row = layout.row() 
-        row.operator('wm.calc_correct_all_bones', text='CALC ALL ROTLOC CORRECTIONS') 
-        row = layout.row() 
-        row.label(text="calc will not update position if pole in name")
+        #row = layout.row() 
+        #row.operator('wm.calc_correct_all_bones', text='CALC ALL ROTLOC CORRECTIONS') 
+        #row = layout.row() 
+        #row.label(text="calc will not update position if pole in name")
         
         if scene.keemap_bone_mapping_list_index >= 0 and scene.keemap_bone_mapping_list: 
             item = scene.keemap_bone_mapping_list[scene.keemap_bone_mapping_list_index] 
