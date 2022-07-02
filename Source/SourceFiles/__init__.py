@@ -20,7 +20,7 @@ bl_info = {
     "name": "KeeMap Anicmation Transfer Tool",
     "description": "Tools for moving animation from one Rig To Another",
     "author": "Nick Keeline",
-    "version": (0, 0, 5),
+    "version": (0, 0, 6),
     "blender": (3, 2, 0),
     "location": "3D View > Tools",
     "warning": "", # used for warning icon and text in addons panel

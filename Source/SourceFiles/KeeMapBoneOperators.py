@@ -3,6 +3,7 @@ import math
 import json
 from os import path
 import mathutils
+from mathutils import Vector
 
 
 def Update():
@@ -12,15 +13,46 @@ def Update():
     #bpy.context.view_layer.update()
     #bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 
-def GetBonePositionWS(bone, arm):
+def GetBonePositionWSwCorrection(bone, arm, CorrectionX, CorrectionY, CorrectionZ, Gain):
     #global_location = arm.matrix_world @ bone.matrix @ bone.location
-    global_location = arm.matrix_world @ bone.matrix 
+    #sourceStart = Vector((0, 0, 0))
+    #sourceStart.x = (bone.location.x + CorrectionX)*Gain
+    #sourceStart.y = (bone.location.y + CorrectionY)*Gain
+    #sourceStart.z = (bone.location.z + CorrectionZ)*Gain
+    #print("Getting Bone Position sourceStart: ", sourceStart)
+    #armspace = GetBoneMatrix(bone) @  sourceStart
+    
+    #global_location = arm.matrix_world @ armspace
+    #print("Getting Bone Position global_location: ", global_location)
     #print(global_location)
-    return global_location.translation
+    #bone.location.x = (bone.location.x + CorrectionX)*Gain
+    #bone.location.y = (bone.location.y + CorrectionY)*Gain
+    #bone.location.z = (bone.location.z + CorrectionZ)*Gain
+    newmat = bone.matrix.copy()
+    newmat.translation.x = (newmat.translation.x + CorrectionX)*Gain
+    newmat.translation.y = (newmat.translation.y + CorrectionY)*Gain
+    newmat.translation.z = (newmat.translation.z + CorrectionZ)*Gain
+    global_location2 = arm.convert_space(pose_bone=bone, 
+        matrix=newmat, 
+        from_space='POSE', 
+        to_space='WORLD')
+    print("Get Bone Position  converstion WS: ",global_location2.translation)
+    return global_location2.translation
+    
+def GetBonePositionWS(bone, arm):
+    global_location2 = arm.convert_space(pose_bone=bone, 
+        matrix=bone.matrix, 
+        from_space='POSE', 
+        to_space='WORLD')
+    print("Get Bone Position  converstion WS: ",global_location2.translation)
+    #global_location = arm.matrix_world @ bone.matrix @ bone.location
+    #global_location = arm.matrix_world @ GetBoneMatrix(bone) 
+    #print(global_location)
+    return global_location2.translation
     
 def SetBonePositionWS(bone, arm, position):
     mw = arm.convert_space(pose_bone=bone, 
-        matrix=bone.matrix, 
+        matrix=GetBoneMatrix(bone), 
         from_space='POSE', 
         to_space='WORLD')
     mw.translation = position
@@ -28,23 +60,99 @@ def SetBonePositionWS(bone, arm, position):
         matrix=mw, 
         from_space='WORLD', 
         to_space='POSE')
+        
 def SetBonePosition(SourceArmature, SourceBoneName, DestinationArmature, DestinationBoneName, DestinationTwistBoneName, WeShouldKeyframe, CorrectionX, CorrectionY, CorrectionZ, Gain):
     destination_bone =  DestinationArmature.pose.bones[DestinationBoneName]
     sourceBone = SourceArmature.pose.bones[SourceBoneName]
     
-    PositiontoPutDestinationBone = GetBonePositionWS(sourceBone, SourceArmature)
+    PositiontoPutDestinationBone = GetBonePositionWSwCorrection(sourceBone, SourceArmature, CorrectionX, CorrectionY, CorrectionZ, Gain)
     
+    #newposition = GetBonePositionWS(sourceBone, SourceArmature)
+
     SetBonePositionWS(destination_bone, DestinationArmature, PositiontoPutDestinationBone)
-    
-    destination_bone.location.x = (destination_bone.location.x + CorrectionX)*Gain
-    destination_bone.location.y = (destination_bone.location.y + CorrectionY)*Gain
-    destination_bone.location.z = (destination_bone.location.z + CorrectionZ)*Gain
-    
+        
     Update()
     if (WeShouldKeyframe):
         currentFrame = bpy.context.scene.frame_current
         destination_bone.keyframe_insert(data_path='location',frame=currentFrame)
 
+def GetBoneMatrix(bone):
+    return bone.matrix
+    
+def CalcLocationOffset(index):  
+    scene = bpy.context.scene
+    KeeMap = scene.keemap_settings 
+    bone_mapping_list = scene.keemap_bone_mapping_list
+    
+    print('Calc location offsets:')
+    SourceArmName = KeeMap.source_rig_name
+    DestArmName = KeeMap.destination_rig_name
+    
+    if SourceArmName == "":
+        self.report({'ERROR'}, "Must Have a Source Armature Name Entered")
+    elif DestArmName == "":
+        self.report({'ERROR'}, "Must Have a Destination Armature Name Entered")
+    else:
+        SourceArm = bpy.data.objects[SourceArmName]
+        DestArm  = bpy.data.objects[DestArmName]
+        
+        SourceBoneName = bone_mapping_list[index].SourceBoneName
+        DestBoneName = bone_mapping_list[index].DestinationBoneName
+                    
+        if SourceBoneName == "":
+            self.report({'ERROR'}, "Must Have a Source Bone Name Entered")
+        elif DestBoneName == "":
+            self.report({'ERROR'}, "Must Have a Destination Bone Name Entered")
+        else:
+            sourceBone = SourceArm.pose.bones[SourceBoneName]
+            print(SourceBoneName)
+            sourcepos = GetBonePositionWS(sourceBone, SourceArm)
+            print("Source Bone Position WS: ",sourcepos)
+            
+            destBone = DestArm.pose.bones[DestBoneName]
+            print(DestBoneName)
+            destpos = GetBonePositionWS(destBone, DestArm)
+            print("Dest Bone Position WS: ", destpos)
+            
+            
+            ws_SourceMatrix = SourceArm.matrix_world @ GetBoneMatrix(sourceBone) 
+            ws_DestMatrix = DestArm.matrix_world @ GetBoneMatrix(destBone)
+
+            WStoSourceArm = SourceArm.matrix_world.inverted() @ ws_DestMatrix.translation
+            
+            mat = GetBoneMatrix(sourceBone)
+            SourceArmtoPoseBone = mat.inverted() @ WStoSourceArm
+            
+            bone_mapping_list[index].position_correction_factor.x = SourceArmtoPoseBone.x
+            bone_mapping_list[index].position_correction_factor.y = SourceArmtoPoseBone.y
+            bone_mapping_list[index].position_correction_factor.z = SourceArmtoPoseBone.z
+            
+            #new_ws_DestMatrix = ws_DestMatrix.copy()
+            #new_ws_DestMatrix.translation.x = ws_SourceMatrix.translation.x
+            #new_ws_DestMatrix.translation.y = ws_SourceMatrix.translation.y
+            #new_ws_DestMatrix.translation.z = ws_SourceMatrix.translation.z
+            #mw = SourceArm.convert_space(pose_bone=sourceBone, 
+                #matrix=ws_DestMatrix, 
+                #from_space='WORLD', 
+                #to_space='POSE')
+            #mw =   ws_DestMatrix.inverted() @ new_ws_DestMatrix
+            #bone_mapping_list[index].position_correction_factor.x = mw.translation.x
+            #bone_mapping_list[index].position_correction_factor.y = mw.translation.y
+            #bone_mapping_list[index].position_correction_factor.z = mw.translation.z
+            
+            #global_location = destBone.matrix @ DestArm.matrix_world 
+            #final = global_location.inverted() @ finaltranslation
+            #thr = destBone.matrix.inverted @ finaltranslation
+            #print("final position bone space: ", mw.translation)
+            #SetBonePositionWS(destBone, DestArm, sourcepos)
+            #Update()
+            #bone_mapping_list[index].position_correction_factor.x = destBone.location.x*(-1)
+            #bone_mapping_list[index].position_correction_factor.y = destBone.location.y*(-1)
+            #bone_mapping_list[index].position_correction_factor.z = destBone.location.z*(-1)
+            
+            #SetBonePositionWS(destBone, DestArm, destpos)
+            Update()
+            
 def CalcRotationOffset(index):    
     scene = bpy.context.scene
     KeeMap = scene.keemap_settings 
@@ -119,60 +227,6 @@ def CalcRotationOffset(index):
                 destBone.rotation_euler.y = 0
             print(destBoneStartPosition)
             
-def CalcLocationOffset(index):  
-    scene = bpy.context.scene
-    KeeMap = scene.keemap_settings 
-    bone_mapping_list = scene.keemap_bone_mapping_list
-    
-    print('Calc location offsets:')
-    SourceArmName = KeeMap.source_rig_name
-    DestArmName = KeeMap.destination_rig_name
-    
-    if SourceArmName == "":
-        self.report({'ERROR'}, "Must Have a Source Armature Name Entered")
-    elif DestArmName == "":
-        self.report({'ERROR'}, "Must Have a Destination Armature Name Entered")
-    else:
-        SourceArm = bpy.data.objects[SourceArmName]
-        DestArm  = bpy.data.objects[DestArmName]
-        
-        SourceBoneName = bone_mapping_list[index].SourceBoneName
-        DestBoneName = bone_mapping_list[index].DestinationBoneName
-                    
-        if SourceBoneName == "":
-            self.report({'ERROR'}, "Must Have a Source Bone Name Entered")
-        elif DestBoneName == "":
-            self.report({'ERROR'}, "Must Have a Destination Bone Name Entered")
-        else:
-            sourceBone = SourceArm.pose.bones[SourceBoneName]
-            print(SourceBoneName)
-            sourcepos = GetBonePositionWS(sourceBone, SourceArm)
-            print("Source Bone Position WS: ",sourcepos)
-            
-            destBone = DestArm.pose.bones[DestBoneName]
-            print(DestBoneName)
-            destpos = GetBonePositionWS(destBone, DestArm)
-            print("Dest Bone Position WS: ", destpos)
-            
-            finaltranslation = destpos - sourcepos 
-            print("Final Offset WS: ", finaltranslation)
-            
-            #mw = DestArm.convert_space(pose_bone=destBone, 
-                #matrix=destBone.matrix, 
-                #from_space='WORLD', 
-                #to_space='POSE')
-            #global_location = destBone.matrix @ DestArm.matrix_world 
-            #final = global_location.inverted() @ finaltranslation
-            #thr = destBone.matrix.inverted @ finaltranslation
-            #print("final position bone space: ", mw.translation)
-            SetBonePositionWS(destBone, DestArm, sourcepos)
-            Update()
-            bone_mapping_list[index].position_correction_factor.x = destBone.location.x*(-1)
-            bone_mapping_list[index].position_correction_factor.y = destBone.location.y*(-1)
-            bone_mapping_list[index].position_correction_factor.z = destBone.location.z*(-1)
-            
-            SetBonePositionWS(destBone, DestArm, destpos)
-            Update()
             
 def GetBoneWSQuat(Bone, Arm):
     source_arm_matrix = Arm.matrix_world
@@ -360,6 +414,7 @@ class PerformAnimationTransfer(bpy.types.Operator):
                 print('')
 
                 bpy.ops.wm.test_all_bones(keyframe = True)
+                Update()
                 i = i + KeyFrame_Every_Nth_Frame
 
         return{'FINISHED'}
@@ -473,6 +528,7 @@ class KEEMAP_TestAllBones(bpy.types.Operator):
             index = i
             print(bone_settings.name)
             bpy.ops.wm.test_set_rotation_of_bone(index2pose = index,keyframe = self.keyframe)
+            Update()
             i = i+1
         return{'FINISHED'}
 
