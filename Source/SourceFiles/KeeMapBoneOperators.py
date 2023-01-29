@@ -29,28 +29,38 @@ def GetBonePositionWSwCorrection(bone, arm, CorrectionX, CorrectionY, Correction
     #bone.location.y = (bone.location.y + CorrectionY)*Gain
     #bone.location.z = (bone.location.z + CorrectionZ)*Gain
     newmat = bone.matrix.copy()
+    print("Arm space of bone position of ", bone.name, ": ",newmat.translation)
     newmat.translation.x = (newmat.translation.x + CorrectionX)*Gain
     newmat.translation.y = (newmat.translation.y + CorrectionY)*Gain
     newmat.translation.z = (newmat.translation.z + CorrectionZ)*Gain
+    print("Corrected Arm space of bone position of ", bone.name, ": ",newmat.translation)
     global_location2 = arm.convert_space(pose_bone=bone, 
         matrix=newmat, 
         from_space='POSE', 
         to_space='WORLD')
-    print("Get Bone Position  converstion WS: ",global_location2.translation)
+    print("Resulting WS: ",global_location2.translation)
     return global_location2.translation
     
 def GetBonePositionWS(bone, arm):
-    global_location2 = arm.convert_space(pose_bone=bone, 
+    #boneWS = arm.location + bone.head
+    boneWS = arm.convert_space(pose_bone=bone, 
         matrix=bone.matrix, 
         from_space='POSE', 
         to_space='WORLD')
-    print("Get Bone Position  converstion WS: ",global_location2.translation)
+    print("World Space Position of ", bone.name, ": ",boneWS.translation)
+    #print("Arm space of bone position of ", bone.name, ": ",bone.matrix.translation)
+    #global_location2 = arm.convert_space(pose_bone=bone, 
+        #matrix=bone.matrix, 
+        #from_space='POSE', 
+        #to_space='WORLD')
+    #print("World space of bone position of ", bone.name, ": ",global_location2.translation)
     #global_location = arm.matrix_world @ bone.matrix @ bone.location
     #global_location = arm.matrix_world @ GetBoneMatrix(bone) 
     #print(global_location)
-    return global_location2.translation
+    return boneWS.translation
     
 def SetBonePositionWS(bone, arm, position):
+    print("Setinng Bone ", bone.name, "to WS Position: ",position)
     mw = arm.convert_space(pose_bone=bone, 
         matrix=GetBoneMatrix(bone), 
         from_space='POSE', 
@@ -65,11 +75,17 @@ def SetBonePosition(SourceArmature, SourceBoneName, DestinationArmature, Destina
     destination_bone =  DestinationArmature.pose.bones[DestinationBoneName]
     sourceBone = SourceArmature.pose.bones[SourceBoneName]
     
-    PositiontoPutDestinationBone = GetBonePositionWSwCorrection(sourceBone, SourceArmature, CorrectionX, CorrectionY, CorrectionZ, Gain)
+    #PositiontoPutDestinationBone = GetBonePositionWSwCorrection(sourceBone, SourceArmature, CorrectionX, CorrectionY, CorrectionZ, Gain)
+    #PositiontoPutDestinationBone = GetBonePositionWSwCorrection(sourceBone, SourceArmature, 0, 0, 0, 1)
+    PositiontoPutDestinationBone = GetBonePositionWS(sourceBone, SourceArmature)
     
     #newposition = GetBonePositionWS(sourceBone, SourceArmature)
 
     SetBonePositionWS(destination_bone, DestinationArmature, PositiontoPutDestinationBone)
+    
+    destination_bone.location.x = (destination_bone.location.x + CorrectionX)*Gain
+    destination_bone.location.y = (destination_bone.location.y + CorrectionY)*Gain
+    destination_bone.location.z = (destination_bone.location.z + CorrectionZ)*Gain
         
     Update()
     if (WeShouldKeyframe):
@@ -105,27 +121,68 @@ def CalcLocationOffset(index):
             self.report({'ERROR'}, "Must Have a Destination Bone Name Entered")
         else:
             sourceBone = SourceArm.pose.bones[SourceBoneName]
-            print(SourceBoneName)
+            print("Source Bone: ", SourceBoneName)
             sourcepos = GetBonePositionWS(sourceBone, SourceArm)
             print("Source Bone Position WS: ",sourcepos)
             
             destBone = DestArm.pose.bones[DestBoneName]
-            print(DestBoneName)
+            print("Destination Bone: ", DestBoneName)
             destpos = GetBonePositionWS(destBone, DestArm)
             print("Dest Bone Position WS: ", destpos)
             
             
-            ws_SourceMatrix = SourceArm.matrix_world @ GetBoneMatrix(sourceBone) 
-            ws_DestMatrix = DestArm.matrix_world @ GetBoneMatrix(destBone)
+            print("Source Bone Pose Space: ",sourcepos)
+            currentDestPosPS = destBone.location.copy()
+            print("Pose Space of ", destBone.name, " before move: ",currentDestPosPS)
+            SetBonePositionWS(destBone, DestArm,sourcepos)
+            Update()
+            DestMovedtoSourcePS = destBone.location.copy()
+            print("Pose Space of ", destBone.name, " after moved to source position: ",DestMovedtoSourcePS)
+            SetBonePositionWS(destBone, DestArm,destpos)
+            Update()
+            delta = currentDestPosPS - DestMovedtoSourcePS
+            print("Pose Space Delta of ", destBone.name, " : ",delta)
+            bone_mapping_list[index].position_correction_factor.x = delta.x
+            bone_mapping_list[index].position_correction_factor.y = delta.y
+            bone_mapping_list[index].position_correction_factor.z = delta.z
+            #mt = SourceArm.convert_space(pose_bone=sourceBone, 
+            #    matrix=GetBoneMatrix(sourceBone), 
+            #    from_space='POSE', 
+            #    to_space='WORLD')
+            #mt2 = mt.copy()
+            #mt.translation = destpos
+            #destboneinsourcebonespace = SourceArm.convert_space(pose_bone=sourceBone, 
+            #    matrix=mt, 
+            #    from_space='WORLD', 
+            #    to_space='POSE')
+            #    
+            #mt2.translation = sourcepos
+            #sourceboneinsourcebonespace = SourceArm.convert_space(pose_bone=sourceBone, 
+            #    matrix=mt2, 
+            #    from_space='WORLD', 
+            #    to_space='POSE')
+            #bone_mapping_list[index].position_correction_factor.x = destboneinsourcebonespace.translation.x - sourceboneinsourcebonespace.translation.x
+            #bone_mapping_list[index].position_correction_factor.y = destboneinsourcebonespace.translation.y - sourceboneinsourcebonespace.translation.y
+            #bone_mapping_list[index].position_correction_factor.z = destboneinsourcebonespace.translation.z - sourceboneinsourcebonespace.translation.z
+            
+            #bone_mapping_list[index].position_correction_factor.x = 0
+            #bone_mapping_list[index].position_correction_factor.y = 0
+            #bone_mapping_list[index].position_correction_factor.z = 0
+            
+            #ws_SourceMatrix = SourceArm.matrix_world @ GetBoneMatrix(sourceBone) 
+            #ws_DestMatrix = DestArm.matrix_world @ GetBoneMatrix(destBone)
 
-            WStoSourceArm = SourceArm.matrix_world.inverted() @ ws_DestMatrix.translation
+            #We get the matrix of the destination Global position moved to source arm space.
+            #WStoSourceArm = SourceArm.matrix_world.inverted() @ ws_DestMatrix.translation
+            #print("Source Arm Coords for Destination Bone ", destBone.name, " WS Position: ", WStoSourceArm)
             
-            mat = GetBoneMatrix(sourceBone)
-            SourceArmtoPoseBone = mat.inverted() @ WStoSourceArm
+            #mat = GetBoneMatrix(sourceBone)
+            #SourceArmtoPoseBone = mat.inverted() @ WStoSourceArm
+            #print("Pose Bone Coords for Destination Bone ", destBone.name, " WS Position: ", SourceArmtoPoseBone)
             
-            bone_mapping_list[index].position_correction_factor.x = SourceArmtoPoseBone.x
-            bone_mapping_list[index].position_correction_factor.y = SourceArmtoPoseBone.y
-            bone_mapping_list[index].position_correction_factor.z = SourceArmtoPoseBone.z
+            #bone_mapping_list[index].position_correction_factor.x = SourceArmtoPoseBone.x
+            #bone_mapping_list[index].position_correction_factor.y = SourceArmtoPoseBone.y
+            #bone_mapping_list[index].position_correction_factor.z = SourceArmtoPoseBone.z
             
             #new_ws_DestMatrix = ws_DestMatrix.copy()
             #new_ws_DestMatrix.translation.x = ws_SourceMatrix.translation.x
