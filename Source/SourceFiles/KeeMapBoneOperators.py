@@ -1,6 +1,7 @@
 import bpy
 import math
 import json
+import sys
 from os import path
 import mathutils
 from mathutils import Vector
@@ -13,6 +14,14 @@ def Update():
     #bpy.context.view_layer.update()
     #bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 
+def update_progress(job_title, progress):
+    length = 40 # modify this to change the length
+    block = int(round(length*progress))
+    msg = "\r{0}: [{1}] {2}%".format(job_title, "#"*block + "-"*(length-block), round(progress*100, 2))
+    if progress >= 1: msg += " DONE\r\n"
+    sys.stdout.write(msg)
+    sys.stdout.flush()
+    
 def GetBonePositionWSwCorrection(bone, arm, CorrectionX, CorrectionY, CorrectionZ, Gain):
     #global_location = arm.matrix_world @ bone.matrix @ bone.location
     #sourceStart = Vector((0, 0, 0))
@@ -47,20 +56,11 @@ def GetBonePositionWS(bone, arm):
         matrix=bone.matrix, 
         from_space='POSE', 
         to_space='WORLD')
-    print("World Space Position of ", bone.name, ": ",boneWS.translation)
-    #print("Arm space of bone position of ", bone.name, ": ",bone.matrix.translation)
-    #global_location2 = arm.convert_space(pose_bone=bone, 
-        #matrix=bone.matrix, 
-        #from_space='POSE', 
-        #to_space='WORLD')
-    #print("World space of bone position of ", bone.name, ": ",global_location2.translation)
-    #global_location = arm.matrix_world @ bone.matrix @ bone.location
-    #global_location = arm.matrix_world @ GetBoneMatrix(bone) 
-    #print(global_location)
+    #print("World Space Position of ", bone.name, ": ",boneWS.translation)
     return boneWS.translation
     
 def SetBonePositionWS(bone, arm, position):
-    print("Setinng Bone ", bone.name, "to WS Position: ",position)
+    #print("Setinng Bone ", bone.name, "to WS Position: ",position)
     mw = arm.convert_space(pose_bone=bone, 
         matrix=GetBoneMatrix(bone), 
         from_space='POSE', 
@@ -434,6 +434,7 @@ class PerformAnimationTransfer(bpy.types.Operator):
         scene = bpy.context.scene
         KeeMap = bpy.context.scene.keemap_settings 
         bone_mapping_list = context.scene.keemap_bone_mapping_list
+        wm = bpy.context.window_manager
         
         SourceArmName = KeeMap.source_rig_name
         DestArmName = KeeMap.destination_rig_name
@@ -444,7 +445,7 @@ class PerformAnimationTransfer(bpy.types.Operator):
 
 
         print('')
-        print('Start of Everything')
+        print('Starting Transfer:')
         print('')
         #SourcArm = bpy.context.selected_objects[SourcArmName]
         #DestArm  = bpy.context.selected_objects[DestArmName]
@@ -458,22 +459,27 @@ class PerformAnimationTransfer(bpy.types.Operator):
             DestArm  = bpy.data.objects[DestArmName]
             
             i=0
+            wm.progress_begin(0, 100)
             while (i < NumberOfFramesToTransfer):
                 #scene.frame_current = StartFrame + i
                 bpy.context.scene.frame_set(StartFrame + i)
                 Update()
                 
-                print('')
+                #print('')
                 CurrentFrame = scene.frame_current
                 EndFrame =  StartFrame + NumberOfFramesToTransfer
                 PercentComplete = ((CurrentFrame - StartFrame)/(EndFrame - StartFrame))*100
-                print('Working On Frame: ' + str(scene.frame_current) + ' of ' + str(EndFrame) + ' ' + "{:.1f}".format(PercentComplete) + '%')
-                print('')
+                update_progress("Transferring to Rig: ", PercentComplete/100.0)
+                wm.progress_update(PercentComplete/100)
+                #print('Working On Frame: ' + str(scene.frame_current) + ' of ' + str(EndFrame) + ' ' + "{:.1f}".format(PercentComplete) + '%')
+                #print('')
 
                 bpy.ops.wm.test_all_bones(keyframe = True)
                 Update()
                 i = i + KeyFrame_Every_Nth_Frame
 
+            update_progress("Transferring to Rig: ", 1)
+            wm.progress_end()
         return{'FINISHED'}
     
 class KEEMAP_TestSetRotationOfBone(bpy.types.Operator): 
@@ -583,7 +589,7 @@ class KEEMAP_TestAllBones(bpy.types.Operator):
         i = 0
         for bone_settings in bone_mapping_list:
             index = i
-            print(bone_settings.name)
+            #print(bone_settings.name)
             bpy.ops.wm.test_set_rotation_of_bone(index2pose = index,keyframe = self.keyframe)
             Update()
             i = i+1

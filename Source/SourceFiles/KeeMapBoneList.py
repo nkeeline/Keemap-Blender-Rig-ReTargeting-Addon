@@ -188,9 +188,10 @@ class KEEMAP_LIST_OT_SaveToFile(bpy.types.Operator):
                 'position_gain': bone.position_gain,
             })
         jsonbones.update(rootParams)
-        print(jsonbones)
+        #print(jsonbones)
         json.dump(jsonbones, file)  
         file.close()
+        print('JSON Encoded and Saved')
         return{'FINISHED'} 
     
 	
