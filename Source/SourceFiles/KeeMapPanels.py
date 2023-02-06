@@ -96,9 +96,24 @@ class KeemapPanelTwo(KeeMapToolsPanel, bpy.types.Panel):
             row.prop(item, "set_bone_position")
             if item.set_bone_position:
                 box = layout.box()
-                box.prop(item, "position_correction_factor")
-                box.prop(item, "position_gain")
-                box.operator('wm.get_bone_location_correction', text='CALC CORRECTiON')
+                box.prop(item, "postion_type")
+                if item.postion_type == "SINGLE_BONE_OFFSET":
+                    box.prop(item, "position_correction_factor")
+                    box.prop(item, "position_gain")
+                    box.operator('wm.get_bone_location_correction', text='CALC CORRECTiON')
+                else:
+                    #row = layout.row() 
+                    box.prop(item, "position_pole_distance")
+                    #box = layout.row() 
+                    box.label(text="Select the Child Bone of the IK Chain for the Source Bone.")
+                    #box = layout.row() 
+                    box.label(text="The child and the source bone creates a triangle that will be used to position the pole out front of the two bones.")
+            row = layout.row() 
+            row.prop(item, "set_bone_scale")
+            if item.set_bone_scale:
+                row = layout.row() 
+                box = layout.box()
+                box.prop(item, "scale_gain")
             row = layout.row() 
             row.operator('wm.test_set_rotation_of_bone', text='TEST').index2pose = -1
             row.operator('wm.test_all_bones', text='TEST ALL').keyframe = KeeMap.keyframe_test

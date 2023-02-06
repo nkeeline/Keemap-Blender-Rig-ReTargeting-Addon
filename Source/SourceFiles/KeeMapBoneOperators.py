@@ -1,5 +1,6 @@
 import bpy
 import math
+import numpy as np
 import json
 import sys
 from os import path
@@ -14,6 +15,15 @@ def Update():
     #bpy.context.view_layer.update()
     #bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 
+def get_point_on_vector(initial_pt, terminal_pt, distance):
+    v = np.array(initial_pt, dtype=float)
+    u = np.array(terminal_pt, dtype=float)
+    n = v - u
+    n /= np.linalg.norm(n, 2)
+    point = v - distance * n
+
+    #return tuple(point)
+    return Vector(point)
 def update_progress(job_title, progress):
     length = 40 # modify this to change the length
     block = int(round(length*progress))
@@ -92,6 +102,56 @@ def SetBonePosition(SourceArmature, SourceBoneName, DestinationArmature, Destina
         currentFrame = bpy.context.scene.frame_current
         destination_bone.keyframe_insert(data_path='location',frame=currentFrame)
 
+def SetBonePositionPole(SourceArmature, SourceBoneName, DestinationArmature, DestinationBoneName, DestinationTwistBoneName, WeShouldKeyframe, PoleDisrance):
+    destination_bone =  DestinationArmature.pose.bones[DestinationBoneName]
+    sourceBone = SourceArmature.pose.bones[SourceBoneName]
+    parent_source_bone = sourceBone.parent_recursive[0]
+    
+    base_of_parent_bone_WS = GetBonePositionWS(parent_source_bone, SourceArmature)
+    base_of_child_bone_WS = GetBonePositionWS(sourceBone, SourceArmature)
+    tail_of_child_bone_WS = SourceArmature.matrix_world @ sourceBone.tail
+    
+    #so we're going to not find the exact average between the hip and ankle, we're going to find the ratio of the bone lengths
+    #so when the leg straightens out the kneecap the the point we're calculating are at the correct angles.
+    length_parent_bone = math.dist(base_of_parent_bone_WS, base_of_child_bone_WS)
+    #print("length Parent Bone:")
+    #print(length_parent_bone)
+    length_child_bone = math.dist(base_of_child_bone_WS, tail_of_child_bone_WS)
+    #print("length Child Bone:")
+    #print(length_child_bone)
+    
+    c_p_ratio = length_parent_bone/(length_child_bone + length_parent_bone)
+    #print("CP Ratio:")
+    #print(c_p_ratio)
+    length_base_parent_to_tip_of_child = math.dist(base_of_parent_bone_WS, tail_of_child_bone_WS)
+    
+    #we calculate the virtual pount behind the kneecap to draw a line through to the kneecap to out front to the pole
+    #so we can have the pole out front of the knee.  We used to average the hip to ankle distance, but as the knee straightened
+    #it didn't take into account the difference in lengths between the thigh and knee, so with knee and virtual points at different 
+    #heights the pole went crazy going high or low.  This still doesn't behave well if there is NO bend to the knee, but in reality
+    # this doesn't happen all that often.
+    average_location = get_point_on_vector(base_of_parent_bone_WS, tail_of_child_bone_WS, length_base_parent_to_tip_of_child*c_p_ratio)
+    
+    #here is the old average code with the above mentioned problem.
+        #for a hip we average the location of the hip and ankle
+        #average_location = (base_of_parent_bone_WS + tail_of_child_bone_WS)/2
+        #for a hip we calc the slope of teh average of the hip and ankle to the kneecap:
+        #print(average_location)
+        #print(base_of_child_bone_WS)
+        #slope = base_of_child_bone_WS - average_location
+        
+        #PositiontoPutDestinationBone = slope*2 + average_location
+
+    PositiontoPutDestinationBone = get_point_on_vector(base_of_child_bone_WS, average_location, PoleDisrance)
+    #dist = abs(math.dist(average_location,base_of_child_bone_WS))
+    
+    SetBonePositionWS(destination_bone, DestinationArmature, PositiontoPutDestinationBone)
+        
+    Update()
+    if (WeShouldKeyframe):
+        currentFrame = bpy.context.scene.frame_current
+        destination_bone.keyframe_insert(data_path='location',frame=currentFrame)
+        
 def GetBoneMatrix(bone):
     return bone.matrix
     
@@ -543,9 +603,14 @@ class KEEMAP_TestSetRotationOfBone(bpy.types.Operator):
                 if bone_mapping_list[index].set_bone_rotation:
                     SetBoneRotation(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, CorrQuat, self.keyframe, HasTwist, xferAxis,xPose)
                 if bone_mapping_list[index].set_bone_position:
-                    corr = bone_mapping_list[index].position_correction_factor
-                    gain = bone_mapping_list[index].position_gain
-                    SetBonePosition(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, self.keyframe,corr.x,corr.y,corr.z,gain)
+                    if bone_mapping_list[index].postion_type == "SINGLE_BONE_OFFSET":
+                        corr = bone_mapping_list[index].position_correction_factor
+                        gain = bone_mapping_list[index].position_gain
+                        SetBonePosition(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, self.keyframe,corr.x,corr.y,corr.z,gain)
+                    else:
+                        dist = bone_mapping_list[index].position_pole_distance*(-1)
+                        #print(dist)
+                        SetBonePositionPole(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, self.keyframe, dist)
         return{'FINISHED'}
     
 class KEEMAP_BoneSelectedOperator(bpy.types.Operator):

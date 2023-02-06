@@ -13,7 +13,7 @@ class KeeMapBoneMappingListItem(bpy.types.PropertyGroup):
         default="",
         maxlen=1024
         )
-
+        
     DestinationBoneName: bpy.props.StringProperty(
         name="Destination Bone Name",
         description="This is the name for the rig bone name.",
@@ -35,14 +35,12 @@ class KeeMapBoneMappingListItem(bpy.types.PropertyGroup):
         default = (0.0, 0.0, 0.0), 
         size = 3
         )
-
         
     has_twist_bone: bpy.props.BoolProperty(
         name="Has a Twist Bone",
         description="This will apply the twist along the y axis",
         default = False
         ) 
-        
 
     TwistBoneName: bpy.props.StringProperty(
         name="Twist Bone Name",
@@ -63,6 +61,11 @@ class KeeMapBoneMappingListItem(bpy.types.PropertyGroup):
         default = True
         ) 
         
+    set_bone_scale: bpy.props.BoolProperty(
+        name="Set Scale of Bone",
+        description="This will set the bone scale based on angle of other bones.  Currently only used for Rigify Finger Controls.",
+        default = False
+        ) 
       
     bone_rotation_application_axis: bpy.props.EnumProperty(
         name="Apply To Axis",
@@ -90,6 +93,22 @@ class KeeMapBoneMappingListItem(bpy.types.PropertyGroup):
                ]
         )
 
+    postion_type: bpy.props.EnumProperty(
+        name="Position Type",
+        description="Select the method used to position bone.",
+        items=[ ('SINGLE_BONE_OFFSET', "Single Bone Offset", ""),
+                ('POLE', "Pole Bone", "")
+               ]
+        )
+        
+    position_pole_distance: bpy.props.FloatProperty(
+        name = "Pole Distance",
+        description="Distance from bones to place pole target",
+        default = .3,
+        min = 0,
+        max = 100000
+        )
+        
     position_correction_factor: bpy.props.FloatVectorProperty(
         name="Correction Position",
         description="After Setting the global position of the bone to the same as the source the script will offset the position of the bone by the amount in each direction here.",
@@ -106,6 +125,15 @@ class KeeMapBoneMappingListItem(bpy.types.PropertyGroup):
         min = 0,
         max = 100000
         )
+        
+    scale_gain: bpy.props.FloatProperty(
+        name = "Scale Gain",
+        description="Amount to scale based on angle of bone",
+        default = 1,
+        min = 0,
+        max = 100000
+        )
+        
 def register():
     bpy.utils.register_class(KeeMapBoneMappingListItem)
     bpy.types.Scene.keemap_bone_mapping_list_index = bpy.props.IntProperty()
