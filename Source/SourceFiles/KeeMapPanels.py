@@ -113,6 +113,8 @@ class KeemapPanelTwo(KeeMapToolsPanel, bpy.types.Panel):
             if item.set_bone_scale:
                 row = layout.row() 
                 box = layout.box()
+                box.prop(item, "scale_secondary_bone_name")
+                box.prop(item, "bone_scale_application_axis")
                 box.prop(item, "scale_gain")
             row = layout.row() 
             row.operator('wm.test_set_rotation_of_bone', text='TEST').index2pose = -1

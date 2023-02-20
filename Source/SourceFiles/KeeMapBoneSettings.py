@@ -130,10 +130,30 @@ class KeeMapBoneMappingListItem(bpy.types.PropertyGroup):
         name = "Scale Gain",
         description="Amount to scale based on angle of bone",
         default = 1,
-        min = 0,
+        min = -100000,
         max = 100000
         )
         
+    scale_secondary_bone_name: bpy.props.StringProperty(
+        name="2nd Source Scale Bone Name",
+        description="This is the name for the source rig bone name the angle with respect to the other source bone will be used to scale the destination bone.  The angle between the two source bones are used to scale the dest bone.  Mainly used for rigify where the angle between the tip of the finger and the base finger bone is used to scale the finger control bone so scaling the control bone bends the finger.",
+        default="",
+        maxlen=1024
+        )
+        
+    bone_scale_application_axis: bpy.props.EnumProperty(
+        name="Apply Scale To Axis",
+        description="Axis to Apply scale to, other axis will be left alone.",
+        default = 'Y',
+        items=[ ('XYZ', "XYZ", ""),
+                ('XY', "XY", ""),
+                ('XZ', "XZ", ""),
+                ('YZ', "YZ", ""),
+                ('X', "X", ""),
+                ('Y', "Y", ""),
+                ('Z', "Z", "")
+               ]
+        )
 def register():
     bpy.utils.register_class(KeeMapBoneMappingListItem)
     bpy.types.Scene.keemap_bone_mapping_list_index = bpy.props.IntProperty()

@@ -101,6 +101,44 @@ def SetBonePosition(SourceArmature, SourceBoneName, DestinationArmature, Destina
     if (WeShouldKeyframe):
         currentFrame = bpy.context.scene.frame_current
         destination_bone.keyframe_insert(data_path='location',frame=currentFrame)
+        
+def SetBoneScale(SourceArmature, SourceBoneName, DestinationArmature, DestinationBoneName, SourceScaleBoneName, BoneScaleFactor, Axis, WeShouldKeyframe):
+    destination_bone =  DestinationArmature.pose.bones[DestinationBoneName]
+    sourceBone = SourceArmature.pose.bones[SourceBoneName]
+    SecondarySourceBone = SourceArmature.pose.bones[SourceScaleBoneName]
+    
+    firstquat = GetBoneWSQuat(sourceBone,SourceArmature)
+    secondquat = GetBoneWSQuat(SecondarySourceBone,SourceArmature)
+    dotproduct = firstquat.dot(secondquat)
+    
+    amount = dotproduct*BoneScaleFactor
+    #print("Scale Amount = " + str(amount))
+    
+    
+    if Axis == 'X':
+        destination_bone.scale.x = amount
+    elif Axis == 'Y':
+        destination_bone.scale.y = amount
+    elif Axis == 'Z':
+        destination_bone.scale.z = amount
+    elif Axis == 'XY':
+        destination_bone.scale.x = amount
+        destination_bone.scale.y = amount
+    elif Axis == 'XZ':
+        destination_bone.scale.x = amount
+        destination_bone.scale.z = amount
+    elif Axis == 'YZ':
+        destination_bone.scale.y = amount
+        destination_bone.scale.z = amount
+    else: #Axis == 'XYZ':
+        destination_bone.scale.x = amount
+        destination_bone.scale.y = amount
+        destination_bone.scale.z = amount
+        
+    Update()
+    if (WeShouldKeyframe):
+        currentFrame = bpy.context.scene.frame_current
+        destination_bone.keyframe_insert(data_path='scale',frame=currentFrame)
 
 def SetBonePositionPole(SourceArmature, SourceBoneName, DestinationArmature, DestinationBoneName, DestinationTwistBoneName, WeShouldKeyframe, PoleDisrance):
     destination_bone =  DestinationArmature.pose.bones[DestinationBoneName]
@@ -611,6 +649,14 @@ class KEEMAP_TestSetRotationOfBone(bpy.types.Operator):
                         dist = bone_mapping_list[index].position_pole_distance*(-1)
                         #print(dist)
                         SetBonePositionPole(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, self.keyframe, dist)
+                if bone_mapping_list[index].set_bone_scale:
+                        scalebone = bone_mapping_list[index].scale_secondary_bone_name
+                        if scalebone == "":
+                            self.report({'ERROR'}, "Must Have a Source Bone Name Entered")
+                        else:
+                            gain = bone_mapping_list[index].scale_gain
+                            axis = bone_mapping_list[index].bone_scale_application_axis
+                            SetBoneScale(SourceArm, SourceBoneName, DestArm, DestBoneName, scalebone, gain, axis, self.keyframe)
         return{'FINISHED'}
     
 class KEEMAP_BoneSelectedOperator(bpy.types.Operator):

@@ -147,6 +147,10 @@ class KEEMAP_LIST_OT_ReadInFile(bpy.types.Operator):
                 bone.postion_type = p['postion_type']
             if "set_bone_scale" in p:
                 bone.set_bone_scale = p['set_bone_scale']
+            if "set_bone_scale" in p:
+                bone.scale_secondary_bone_name = p['scale_secondary_bone_name']
+            if "set_bone_scale" in p:
+                bone.bone_scale_application_axis = p['bone_scale_application_axis']
             i = i + 1
         file.close()
         
@@ -194,10 +198,12 @@ class KEEMAP_LIST_OT_SaveToFile(bpy.types.Operator):
                 'position_correction_factorY': bone.position_correction_factor.y,
                 'position_correction_factorZ': bone.position_correction_factor.z,
                 'position_gain': bone.position_gain,
-                'scale_gain': bone.scale_gain,
                 'position_pole_distance': bone.position_pole_distance,
                 'postion_type': bone.postion_type,
                 'set_bone_scale': bone.set_bone_scale,
+                'scale_gain': bone.scale_gain,
+                'bone_scale_application_axis': bone.bone_scale_application_axis,
+                'scale_secondary_bone_name' : bone.scale_secondary_bone_name
             })
         jsonbones.update(rootParams)
         #print(jsonbones)
