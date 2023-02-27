@@ -107,6 +107,24 @@ When you are done, put a start from and number of samples into the transfer sett
 
 **Set Position of Bone**: Typically this is only used on the 'root' bone of a destination armature to position the character in the same locaiton as the source character.
 
+**Position Type**:  There are two types of position setting Single Bone Offset just takes the destination bone and positions it to the world space of the source bone with a pose space offset.  This is useful for IK rigs where you want to place the foot bone in world space position, and then move it a little in pose space to account for differences in length of limbs.  Pole Bone takes prompts you for the source be the base of the ik chain then moves out one child to make three points, the base of the base bone, the tip of the base bone and the tip of the child bone.  The ratio'd average of the base of the base bone and the tip of the child is created. So for a leg example the hip and the ankle are averaged by the length of the thigh divided by the length of the knee.  The resulting point is the same rough height as the knee, but typically behind it if the knee is bent.  A line is then drawn in 3d space from the point to the knee and then out a a distnace in front of the knee.  The pole bone is placed there.
+
+**Pole Distance** This is the distance out front or behind a pole bone is placed in Pole Bone Mode:
+
+**Correction Position** This is a calculated offset in pose space between the source rig and the destination rig bone to apply when setting position.
+
+**Position Gain** Rarely used gains up or down the distance of all three axis (should no be used, not sure why I put it in there)
+
+**Position Calc Corrction**  when both armatures are in tpose mode click this button to calculate and populate an automatic correction factor for the position.
+
+**Set Scale of Bone**  A solution is needed for rigify where there is a bone which is scaled to curve or close the finger.  The angle of the base of the finger with respect to the tip is used to scale the rigify finger bone control.  To do this you add the tip bone to the calc give it a scale to correct for the amount of curvature you want and off you go.  Click this check box to apply this correction.
+
+**2nd Source Scale Bone** This is the name for the source rig bone name the angle with respect to the other source bone will be used to scale the destination bone.  The angle between the two source bones are used to scale the dest bone.  Mainly used for rigify where the angle between the tip of the finger and the base finger bone is used to scale the finger control bone so scaling the control bone bends the finger.
+
+**Apply to Axis**  Which axis do you wish to apply the scale to on the control bone.  In rigify the scale is applied to the Y axis of the control bone, so that's the default.
+
+**Scale Gain**Amount of gain to apply to scale affect to adjust for too much or two little curvature.
+
 **Test**:  Press this to position the destination bone according to your settings to see what your settings do.   VERY USEFUL, use this constantly to test everything as you map all the bones in your character.
 
 **Test All**: this is the same as selecting each bone in the bone list in turn and pressing the 'Test' button.

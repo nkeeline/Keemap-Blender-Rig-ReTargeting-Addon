@@ -41,6 +41,8 @@ class KeemapPanelOne(KeeMapToolsPanel, bpy.types.Panel):
         row.prop(KeeMap, "destination_rig_name")
         row.operator("wm.get_arm_name", text='', icon='EYEDROPPER').source = False
         layout.prop(KeeMap, "bone_mapping_file")
+        row = layout.row(align=True)
+        layout.prop(KeeMap, "bone_rotation_mode")
     
         row = layout.row()
         row.operator("wm.keemap_read_file")
@@ -83,15 +85,19 @@ class KeemapPanelTwo(KeeMapToolsPanel, bpy.types.Panel):
             row.prop(item, "set_bone_rotation")
             if item.set_bone_rotation:
                 box = layout.box()
-                box.prop(item, "bone_rotation_application_axis")
-                box.prop(item, "bone_transpose_axis")
-                box.prop(item, "CorrectionFactor")   
-                box.operator('wm.get_bone_rotation_correction', text='CALC CORRECTiON') 
-#                if not item.has_twist_bone: 
-#                    box.operator('wm.get_bone_rotation_correction', text='CALC CORRECTiON') 
-#                box.prop(item, "has_twist_bone")
-#                if item.has_twist_bone:
-#                    box.prop(item, "TwistBoneName")            
+                if KeeMap.bone_rotation_mode == "EULER":
+                    box.prop(item, "bone_rotation_application_axis")
+                    box.prop(item, "bone_transpose_axis")
+                    box.prop(item, "CorrectionFactor")   
+                    box.operator('wm.get_bone_rotation_correction', text='CALC CORRECTiON') 
+                        #                if not item.has_twist_bone: 
+                        #                    box.operator('wm.get_bone_rotation_correction', text='CALC CORRECTiON') 
+                        #                box.prop(item, "has_twist_bone")
+                        #                if item.has_twist_bone:
+                        #                    box.prop(item, "TwistBoneName")            
+                else:
+                    box.prop(item, "QuatCorrectionFactor")
+                    box.operator('wm.get_bone_rotation_correction', text='CALC CORRECTiON')
             row = layout.row() 
             row.prop(item, "set_bone_position")
             if item.set_bone_position:
@@ -116,6 +122,8 @@ class KeemapPanelTwo(KeeMapToolsPanel, bpy.types.Panel):
                 box.prop(item, "scale_secondary_bone_name")
                 box.prop(item, "bone_scale_application_axis")
                 box.prop(item, "scale_gain")
+                box.prop(item, "scale_max")
+                box.prop(item, "scale_min")
             row = layout.row() 
             row.operator('wm.test_set_rotation_of_bone', text='TEST').index2pose = -1
             row.operator('wm.test_all_bones', text='TEST ALL').keyframe = KeeMap.keyframe_test

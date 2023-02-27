@@ -98,6 +98,8 @@ class KEEMAP_LIST_OT_ReadInFile(bpy.types.Operator):
             KeeMap.destination_rig_name = data['destination_rig_name']
         if "bone_mapping_file" in data:
             KeeMap.bone_mapping_file = data['bone_mapping_file']
+        if "bone_rotation_mode" in data:
+            KeeMap.bone_rotation_mode = data['bone_rotation_mode']
         i = 0
         for p in data['bones']:
             bone_list.add()
@@ -141,6 +143,10 @@ class KEEMAP_LIST_OT_ReadInFile(bpy.types.Operator):
                 bone.position_gain = p['position_gain']
             if "scale_gain" in p:
                 bone.scale_gain = p['scale_gain']
+            if "scale_max" in p:
+                bone.scale_max = p['scale_max']
+            if "scale_min" in p:
+                bone.scale_min = p['scale_min']
             if "position_pole_distance" in p:
                 bone.position_pole_distance = p['position_pole_distance']
             if "postion_type" in p:
@@ -151,6 +157,14 @@ class KEEMAP_LIST_OT_ReadInFile(bpy.types.Operator):
                 bone.scale_secondary_bone_name = p['scale_secondary_bone_name']
             if "set_bone_scale" in p:
                 bone.bone_scale_application_axis = p['bone_scale_application_axis']
+            if "QuatCorrectionFactorw" in p:
+                bone.QuatCorrectionFactor.w = p['QuatCorrectionFactorw']
+            if "QuatCorrectionFactorx" in p:
+                bone.QuatCorrectionFactor.x = p['QuatCorrectionFactorx']
+            if "QuatCorrectionFactory" in p:
+                bone.QuatCorrectionFactor.y = p['QuatCorrectionFactory']
+            if "QuatCorrectionFactorz" in p:
+                bone.QuatCorrectionFactor.z = p['QuatCorrectionFactorz']
             i = i + 1
         file.close()
         
@@ -173,6 +187,7 @@ class KEEMAP_LIST_OT_SaveToFile(bpy.types.Operator):
         "keyframe_every_n_frames":KeeMap.keyframe_every_n_frames,
         "source_rig_name":KeeMap.source_rig_name,
         "destination_rig_name":KeeMap.destination_rig_name,
+        "bone_rotation_mode":KeeMap.bone_rotation_mode,
         "bone_mapping_file":KeeMap.bone_mapping_file
         } 
         bone_list = context.scene.keemap_bone_mapping_list
@@ -202,7 +217,13 @@ class KEEMAP_LIST_OT_SaveToFile(bpy.types.Operator):
                 'postion_type': bone.postion_type,
                 'set_bone_scale': bone.set_bone_scale,
                 'scale_gain': bone.scale_gain,
+                'scale_max': bone.scale_max,
+                'scale_min': bone.scale_min,
                 'bone_scale_application_axis': bone.bone_scale_application_axis,
+                'QuatCorrectionFactorw': bone.QuatCorrectionFactor.w,
+                'QuatCorrectionFactorx': bone.QuatCorrectionFactor.x,
+                'QuatCorrectionFactory': bone.QuatCorrectionFactor.y,
+                'QuatCorrectionFactorz': bone.QuatCorrectionFactor.z,
                 'scale_secondary_bone_name' : bone.scale_secondary_bone_name
             })
         jsonbones.update(rootParams)

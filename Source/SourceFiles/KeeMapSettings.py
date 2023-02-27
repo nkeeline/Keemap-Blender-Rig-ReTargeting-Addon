@@ -46,6 +46,15 @@ class KeeMapSettings(bpy.types.PropertyGroup):
         maxlen=1024,
         subtype='FILE_PATH'
         )
+      
+    bone_rotation_mode: bpy.props.EnumProperty(
+        name="Rotation Mode",
+        description="What mode to set rotation of bone in.  Quaternion more robust, Euler easier to understand but has gimbal lock.",
+        default="EULER",
+        items=[ ('EULER', "EULER", ""),
+                ('QUATERNION', "QUATERNION", "")
+               ]
+        )
         
     keyframe_test: bpy.props.BoolProperty(
         name="KeyFrame Test",

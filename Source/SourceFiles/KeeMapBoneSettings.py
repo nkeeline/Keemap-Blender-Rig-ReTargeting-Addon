@@ -35,6 +35,14 @@ class KeeMapBoneMappingListItem(bpy.types.PropertyGroup):
         default = (0.0, 0.0, 0.0), 
         size = 3
         )
+
+    QuatCorrectionFactor: bpy.props.FloatVectorProperty(
+        name="Correction Quat Rotation",
+        description="After Setting the global position of the bone to the same as the source the script will rotate the bone by these angles afterwards to correct rotational differences between the sourc and destination bones.",
+        subtype = 'QUATERNION',
+        default = (1.0, 0.0, 0.0, 0.0), 
+        size = 4
+        )
         
     has_twist_bone: bpy.props.BoolProperty(
         name="Has a Twist Bone",
@@ -130,6 +138,20 @@ class KeeMapBoneMappingListItem(bpy.types.PropertyGroup):
         name = "Scale Gain",
         description="Amount to scale based on angle of bone",
         default = 1,
+        min = -100000,
+        max = 100000
+        )
+    scale_max: bpy.props.FloatProperty(
+        name = "Scale Max Value",
+        description="Maximum Amount to scale based on angle of bone",
+        default = 1,
+        min = -100000,
+        max = 100000
+        )
+    scale_min: bpy.props.FloatProperty(
+        name = "Scale Min Value",
+        description="Minimum Amount to scale based on angle of bone",
+        default = .5,
         min = -100000,
         max = 100000
         )

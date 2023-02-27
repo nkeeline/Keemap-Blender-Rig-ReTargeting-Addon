@@ -1,5 +1,6 @@
 import bpy
 import math
+from math import sqrt
 import numpy as np
 import json
 import sys
@@ -102,7 +103,7 @@ def SetBonePosition(SourceArmature, SourceBoneName, DestinationArmature, Destina
         currentFrame = bpy.context.scene.frame_current
         destination_bone.keyframe_insert(data_path='location',frame=currentFrame)
         
-def SetBoneScale(SourceArmature, SourceBoneName, DestinationArmature, DestinationBoneName, SourceScaleBoneName, BoneScaleFactor, Axis, WeShouldKeyframe):
+def SetBoneScale(SourceArmature, SourceBoneName, DestinationArmature, DestinationBoneName, SourceScaleBoneName, BoneScaleFactor, Axis, MaxScale, MinScale, WeShouldKeyframe):
     destination_bone =  DestinationArmature.pose.bones[DestinationBoneName]
     sourceBone = SourceArmature.pose.bones[SourceBoneName]
     SecondarySourceBone = SourceArmature.pose.bones[SourceScaleBoneName]
@@ -112,8 +113,17 @@ def SetBoneScale(SourceArmature, SourceBoneName, DestinationArmature, Destinatio
     dotproduct = firstquat.dot(secondquat)
     
     amount = dotproduct*BoneScaleFactor
-    #print("Scale Amount = " + str(amount))
     
+    #sometimes the dot product explodes into negative so negate...
+    if amount < 0:
+        amount = amount*(-1)
+    #print("Scale Amount = " + str(amount))
+    #print(type(amount))
+    if amount > MaxScale:
+        amount = MaxScale
+    if amount < MinScale:
+        amount = MinScale
+    #print("Scale Amount = " + str(amount))
     
     if Axis == 'X':
         destination_bone.scale.x = amount
@@ -179,16 +189,19 @@ def SetBonePositionPole(SourceArmature, SourceBoneName, DestinationArmature, Des
         #slope = base_of_child_bone_WS - average_location
         
         #PositiontoPutDestinationBone = slope*2 + average_location
-
-    PositiontoPutDestinationBone = get_point_on_vector(base_of_child_bone_WS, average_location, PoleDisrance)
-    #dist = abs(math.dist(average_location,base_of_child_bone_WS))
-    
-    SetBonePositionWS(destination_bone, DestinationArmature, PositiontoPutDestinationBone)
+    distance = sqrt( (base_of_child_bone_WS.x - average_location.x)**2 + (base_of_child_bone_WS.y - average_location.y)**2 + (base_of_child_bone_WS.z - average_location.z)**2)
+    #print("Point Distance  Amount = " + str(distance))
+    #ok so if the distance between the two points is affectively zero, hang it all just don't position it, leave it in it's current location.
+    if distance > .001:
+        PositiontoPutDestinationBone = get_point_on_vector(base_of_child_bone_WS, average_location, PoleDisrance)
+        #dist = abs(math.dist(average_location,base_of_child_bone_WS))
         
-    Update()
-    if (WeShouldKeyframe):
-        currentFrame = bpy.context.scene.frame_current
-        destination_bone.keyframe_insert(data_path='location',frame=currentFrame)
+        SetBonePositionWS(destination_bone, DestinationArmature, PositiontoPutDestinationBone)
+            
+        Update()
+        if (WeShouldKeyframe):
+            currentFrame = bpy.context.scene.frame_current
+            destination_bone.keyframe_insert(data_path='location',frame=currentFrame)
         
 def GetBoneMatrix(bone):
     return bone.matrix
@@ -339,17 +352,23 @@ def CalcRotationOffset(index):
         else:
             destBone = DestArm.pose.bones[DestBoneName]
             sourceBone = SourceArm.pose.bones[SourceBoneName]
-            destBoneMode = 'XYZ'
+            if KeeMap.bone_rotation_mode == "EULER":
+                destBoneMode = 'XYZ'
+            else:
+                destBoneMode = 'QUATERNION'
             destBone.rotation_mode = destBoneMode
             
             StartingDestBoneWSQuat = GetBoneWSQuat(destBone, DestArm)
             print("Destination Bone Starting WS")
             print(StartingDestBoneWSQuat.to_euler())
-            destBoneStartPosition = destBone.rotation_euler.copy()
+            if KeeMap.bone_rotation_mode == "EULER":
+                destBoneStartPosition = destBone.rotation_euler.copy()
+            else:
+                destBoneStartPosition = destBone.rotation_quaternion.copy()
             #print(destBoneStartPosition)
             
             HasTwist = bone_mapping_list[index].has_twist_bone
-            if HasTwist:
+            if HasTwist and KeeMap.bone_rotation_mode == "EULER":
                 TwistBoneName = bone_mapping_list[index].TwistBoneName
                 TwistBone = DestArm.pose.bones[TwistBoneName]
                 y =  TwistBone.rotation_euler.y
@@ -357,7 +376,7 @@ def CalcRotationOffset(index):
                 TwistBoneName = ''
                 
             CorrQuat =  mathutils.Quaternion((1,0,0,0))
-            SetBoneRotation(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, CorrQuat, False, HasTwist, xferAxis,xPose)
+            SetBoneRotation(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, CorrQuat, False, HasTwist, xferAxis,xPose, KeeMap.bone_rotation_mode)
             Update()
             
             ModifiedDestBoneWSQuat = GetBoneWSQuat(destBone, DestArm)
@@ -375,9 +394,14 @@ def CalcRotationOffset(index):
             bone_mapping_list[index].CorrectionFactor.x = corrEuler.x
             bone_mapping_list[index].CorrectionFactor.y = corrEuler.y
             bone_mapping_list[index].CorrectionFactor.z = corrEuler.z
+            bone_mapping_list[index].QuatCorrectionFactor = q
             
-            destBone.rotation_euler = destBoneStartPosition
-            if HasTwist:
+            if KeeMap.bone_rotation_mode == "EULER":
+                destBone.rotation_euler = destBoneStartPosition
+            else:
+                destBone.rotation_quaternion = destBoneStartPosition
+            
+            if HasTwist and KeeMap.bone_rotation_mode == "EULER":
                 TwistBone.rotation_euler.y = y
                 destBone.rotation_euler.y = 0
             print(destBoneStartPosition)
@@ -392,7 +416,7 @@ def GetBoneWSQuat(Bone, Arm):
     
     return source_bone_world_matrix.to_quaternion()
         
-def SetBoneRotation(SourceArmature, SourceBoneName, DestinationArmature, DestinationBoneName, DestinationTwistBoneName, CorrectionQuat, WeShouldKeyframe, hastwistbone, xferAxis, Transpose):
+def SetBoneRotation(SourceArmature, SourceBoneName, DestinationArmature, DestinationBoneName, DestinationTwistBoneName, CorrectionQuat, WeShouldKeyframe, hastwistbone, xferAxis, Transpose, mode):
 
     #Get the rotation of the bone in edit mode
 #    SourceBoneEdit = SourceArmature.data.bones[SourceBoneName]
@@ -447,50 +471,56 @@ def SetBoneRotation(SourceArmature, SourceBoneName, DestinationArmature, Destina
     DifferenceBetweenSourceWSandDestWS = DestBoneRotWS.rotation_difference(SourceBoneRotWS)
     #print('Difference Rotation')
     FinalQuat = destination_bone.rotation_quaternion.copy() @ DifferenceBetweenSourceWSandDestWS @ CorrectionQuat
-    destination_bone.rotation_mode = 'XYZ'
-    FinalEul = FinalQuat.to_euler()
-    if Transpose == 'ZYX':
-        destination_bone.rotation_euler.x = FinalEul.z
-        destination_bone.rotation_euler.y = FinalEul.y
-        destination_bone.rotation_euler.z = FinalEul.x
-    elif Transpose == 'ZXY':
-        destination_bone.rotation_euler.x = FinalEul.z
-        destination_bone.rotation_euler.y = FinalEul.x
-        destination_bone.rotation_euler.z = FinalEul.y
-    elif Transpose == 'XZY':
-        destination_bone.rotation_euler.x = FinalEul.x
-        destination_bone.rotation_euler.y = FinalEul.z
-        destination_bone.rotation_euler.z = FinalEul.y
-    elif Transpose == 'YZX':
-        destination_bone.rotation_euler.x = FinalEul.y
-        destination_bone.rotation_euler.y = FinalEul.z
-        destination_bone.rotation_euler.z = FinalEul.x
-    elif Transpose == 'YXZ':
-        destination_bone.rotation_euler.x = FinalEul.y
-        destination_bone.rotation_euler.y = FinalEul.x
-        destination_bone.rotation_euler.z = FinalEul.z
+    if mode == "EULER":
+        destination_bone.rotation_mode = 'XYZ'
+        FinalEul = FinalQuat.to_euler()
+        if Transpose == 'ZYX':
+            destination_bone.rotation_euler.x = FinalEul.z
+            destination_bone.rotation_euler.y = FinalEul.y
+            destination_bone.rotation_euler.z = FinalEul.x
+        elif Transpose == 'ZXY':
+            destination_bone.rotation_euler.x = FinalEul.z
+            destination_bone.rotation_euler.y = FinalEul.x
+            destination_bone.rotation_euler.z = FinalEul.y
+        elif Transpose == 'XZY':
+            destination_bone.rotation_euler.x = FinalEul.x
+            destination_bone.rotation_euler.y = FinalEul.z
+            destination_bone.rotation_euler.z = FinalEul.y
+        elif Transpose == 'YZX':
+            destination_bone.rotation_euler.x = FinalEul.y
+            destination_bone.rotation_euler.y = FinalEul.z
+            destination_bone.rotation_euler.z = FinalEul.x
+        elif Transpose == 'YXZ':
+            destination_bone.rotation_euler.x = FinalEul.y
+            destination_bone.rotation_euler.y = FinalEul.x
+            destination_bone.rotation_euler.z = FinalEul.z
+        else:
+            destination_bone.rotation_euler = FinalEul
+        
+        if xferAxis == 'X':
+            destination_bone.rotation_euler.y = 0
+            destination_bone.rotation_euler.z = 0
+        elif xferAxis == 'Y':
+            destination_bone.rotation_euler.x = 0
+            destination_bone.rotation_euler.z = 0
+        elif xferAxis == 'Z':
+            destination_bone.rotation_euler.x = 0
+            destination_bone.rotation_euler.y = 0
+        elif xferAxis == 'XY':
+            destination_bone.rotation_euler.z = 0
+        elif xferAxis == 'XZ':
+            destination_bone.rotation_euler.y = 0
+        elif xferAxis == 'YZ':
+            destination_bone.rotation_euler.x = 0
     else:
-        destination_bone.rotation_euler = FinalEul
-    
-    if xferAxis == 'X':
-        destination_bone.rotation_euler.y = 0
-        destination_bone.rotation_euler.z = 0
-    elif xferAxis == 'Y':
-        destination_bone.rotation_euler.x = 0
-        destination_bone.rotation_euler.z = 0
-    elif xferAxis == 'Z':
-        destination_bone.rotation_euler.x = 0
-        destination_bone.rotation_euler.y = 0
-    elif xferAxis == 'XY':
-        destination_bone.rotation_euler.z = 0
-    elif xferAxis == 'XZ':
-        destination_bone.rotation_euler.y = 0
-    elif xferAxis == 'YZ':
-        destination_bone.rotation_euler.x = 0
+        destination_bone.rotation_mode = 'QUATERNION'
+        if(FinalQuat.w < 0):
+            FinalQuat = FinalQuat*(-1)
+        destination_bone.rotation_quaternion = FinalQuat.normalized()
         
     Update()
     
-    if (hastwistbone):
+    if (hastwistbone and mode == "EULER"):
         TwistBone.rotation_mode = 'XYZ'
         yrotation = destination_bone.rotation_euler.y
         destination_bone.rotation_euler.y = 0
@@ -498,15 +528,19 @@ def SetBoneRotation(SourceArmature, SourceBoneName, DestinationArmature, Destina
         #print('Setting Twist Bone: ' + yrotation)
         #TwistBone.rotation_mode = 'QUATERNION'
         #destination_bone.rotation_mode = 'QUATERNION'
+        Update()
         
-    Update()
-    
     if (WeShouldKeyframe):
         currentFrame = bpy.context.scene.frame_current
-        destination_bone.rotation_mode = 'XYZ'
-        destination_bone.keyframe_insert(data_path='rotation_euler',frame=currentFrame)
+        if mode == "EULER":
+            destination_bone.rotation_mode = 'XYZ'
+            destination_bone.keyframe_insert(data_path='rotation_euler',frame=currentFrame)
+        else:
+            destination_bone.rotation_mode = 'QUATERNION'
+            destination_bone.keyframe_insert(data_path='rotation_quaternion',frame=currentFrame)
+        
         #print('keyframed' + str(currentFrame))
-        if (hastwistbone):
+        if (hastwistbone and mode == "EULER"):
             TwistBone.rotation_mode = 'XYZ'
             TwistBone.keyframe_insert(data_path='rotation_euler',frame=currentFrame)
 
@@ -626,20 +660,23 @@ class KEEMAP_TestSetRotationOfBone(bpy.types.Operator):
             else:
                 HasTwist = bone_mapping_list[index].has_twist_bone
                 TwistBoneName = bone_mapping_list[index].TwistBoneName
-                CorrectionVectorX = bone_mapping_list[index].CorrectionFactor.x
-                #print(math.degrees(CorrectionVectorX))
-                CorrectionVectorY = bone_mapping_list[index].CorrectionFactor.y
-                #print(math.degrees(CorrectionVectorY))
-                CorrectionVectorZ = bone_mapping_list[index].CorrectionFactor.z
-                #print(math.degrees(CorrectionVectorZ))
-                corrEul = mathutils.Euler((CorrectionVectorX, CorrectionVectorY, CorrectionVectorZ), 'XYZ')
-                #print('correction Eul in:')
-                #print(corrEul)
-                CorrQuat = corrEul.to_quaternion()
+                if KeeMap.bone_rotation_mode == "EULER":
+                    CorrectionVectorX = bone_mapping_list[index].CorrectionFactor.x
+                    #print(math.degrees(CorrectionVectorX))
+                    CorrectionVectorY = bone_mapping_list[index].CorrectionFactor.y
+                    #print(math.degrees(CorrectionVectorY))
+                    CorrectionVectorZ = bone_mapping_list[index].CorrectionFactor.z
+                    #print(math.degrees(CorrectionVectorZ))
+                    corrEul = mathutils.Euler((CorrectionVectorX, CorrectionVectorY, CorrectionVectorZ), 'XYZ')
+                    #print('correction Eul in:')
+                    #print(corrEul)
+                    CorrQuat = corrEul.to_quaternion()
+                else:
+                    CorrQuat = bone_mapping_list[index].QuatCorrectionFactor
                 #print('correction in:')
                 #print(CorrQuat.to_euler())
                 if bone_mapping_list[index].set_bone_rotation:
-                    SetBoneRotation(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, CorrQuat, self.keyframe, HasTwist, xferAxis,xPose)
+                    SetBoneRotation(SourceArm, SourceBoneName, DestArm, DestBoneName, TwistBoneName, CorrQuat, self.keyframe, HasTwist, xferAxis,xPose, KeeMap.bone_rotation_mode)
                 if bone_mapping_list[index].set_bone_position:
                     if bone_mapping_list[index].postion_type == "SINGLE_BONE_OFFSET":
                         corr = bone_mapping_list[index].position_correction_factor
@@ -656,7 +693,9 @@ class KEEMAP_TestSetRotationOfBone(bpy.types.Operator):
                         else:
                             gain = bone_mapping_list[index].scale_gain
                             axis = bone_mapping_list[index].bone_scale_application_axis
-                            SetBoneScale(SourceArm, SourceBoneName, DestArm, DestBoneName, scalebone, gain, axis, self.keyframe)
+                            maxscale = bone_mapping_list[index].scale_max
+                            minscale = bone_mapping_list[index].scale_min
+                            SetBoneScale(SourceArm, SourceBoneName, DestArm, DestBoneName, scalebone, gain, axis, maxscale, minscale, self.keyframe)
         return{'FINISHED'}
     
 class KEEMAP_BoneSelectedOperator(bpy.types.Operator):
